@@ -6,28 +6,21 @@
 
 # TODO
 
-- gitignore
-- run script
-- driver
-- random agent
-- qlearner agent
-- taxi environment
-- results
-- report part 1
-- cartpole tutorial
-- cartpole environment
-- results
-- report part 2
 - OTHER tutorial
 - OTHER environment
-- results
-- report part 3
 - temporal difference agent
-- results
+- gitignore
+- think about display/reporting etc
+- think about results/data comparisons etc
+- hyperparameter training
+- early stopping & max episodes
+- report part 1
+- report part 2
+- report part 3
 - report part 4
 - comments
 - readme
-- environment test (all deps)
+- environment test (add all deps)
 
 # Notes
 
