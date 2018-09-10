@@ -3,59 +3,66 @@ from src.driver import Driver
 from src.agents.random import Random
 from src.agents.qlearner import Qlearner
 
-# entry point; you can change the hyperparameters here
-if __name__ == '__main__':
-    env_names = [
-        'Taxi-v2',
-        'CartPole-v1'
-    ]
-    envs = [gym.make(name) for name in env_names]
+def taxi_random():
+    env = gym.make('Taxi-v2')
+    agent = Random()
+    driver = Driver({
+        'debug': False,
+        'training_episodes': 100000,
+        'evaluation_episodes': 100,
+        'env': env,
+        'agent': agent,
+    })
+    driver.run_taxi_random()
 
-    qlearner_hyperparameters = {
+def taxi_qlearner():
+    env = gym.make('Taxi-v2')
+    agent = Qlearner({
         'alpha': 0.1,
         'gamma': 0.6,
         'epsilon': 0.1,
-    }
+    })
+    driver = Driver({
+        'debug': False,
+        'training_episodes': 100000,
+        'evaluation_episodes': 100,
+        'env': env,
+        'agent': agent,
+    })
+    driver.run_taxi_qlearner()
 
-    for env in envs:
-        parameters = qlearner_hyperparameters
-        num_states, num_actions = extract_shape(env)
-        parameters['num_states'] = num_states
-        parameters['num_actions'] = num_actions
+def cartpole_random():
+    env = gym.make('CartPole-v1')
+    agent = Random()
+    driver = Driver({
+        'debug': False,
+        'training_episodes': 100000,
+        'evaluation_episodes': 100,
+        'env': env,
+        'agent': agent,
+    })
+    driver.run_cartpole_random()
 
-        agents = [
-            Random(),
-            Qlearner(parameters),
-        ]
+def cartpole_qlearner():
+    env = gym.make('CartPole-v1')
+    agent = Qlearner({
+        'alpha': 0.1,
+        'gamma': 0.6,
+        'epsilon': 0.8,
+    })
+    driver = Driver({
+        'debug': False,
+        'training_episodes': 100000,
+        'evaluation_episodes': 100,
+        'env': env,
+        'agent': agent,
+    })
+    driver.run_cartpole_qlearner()
 
-        for agent in agents:
-            driver_params = {
-                'debug': True,
-                'training_episodes': 20,
-                'evaluation_episodes': 10,
-                'env': env,
-                'agent': agent,
-            }
-            driver = Driver(driver_params)
-            driver.run()
+if __name__ == '__main__':
+    #taxi_random()
+    #taxi_qlearner()
 
-# this is because it appears that different Spaces do not consistently
-# define shape on the base Space class, some use the space object and
-# some don't.
-#
-# the shape we need is:
-#   - num_states
-#   - num_actions
-def extract_shape(env):
-    if hasattr(env.observation_space, 'n'):
-        num_states = env.observation_space.n
-    else:
-        num_states = env.observation_space.shape[0]
-
-    if hasattr(env.action_space, 'n'):
-        num_actions = env.action_space.n
-    else:
-        num_actions = env.action_space.shape[0]
-
-    return num_states, num_actions
+    #cartpole_random()
+    cartpole_qlearner()
 

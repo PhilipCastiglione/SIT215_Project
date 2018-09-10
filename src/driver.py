@@ -11,55 +11,99 @@ class Driver:
         self.evaluation_episodes = params['evaluation_episodes']
         self.env = params['env']
         self.agent = params['agent']
+        self.rewards = []
 
-    def run(self):
-        self.train()
-        self.evaluate()
+    def run_taxi_random(self):
+        training_action = lambda _observation: self.agent.action(self.env)
+        update = lambda _observation, _action, _reward: None
+        evaluation_action = training_action
 
-    def train(self):
-        '''
-        # TODO
-        # this is required to generate different starting positions
-        self.seed = random.randint(0, 2**32 - 1)
-        prng.seed(seed)
-        print(sys._getframe(1).f_code.co_name)
-        print(f'running {funcName} with random seed {seed}')
-        '''
+        self.run(training_action, update, evaluation_action)
 
+    def run_taxi_qlearner(self):
+        self.agent.initialize_taxi_q_table(self.env)
+
+        training_action = lambda observation: self.agent.taxi_training_action(self.env, observation)
+        update = lambda observation, action, reward: self.agent.taxi_update(observation, action, reward)
+        evaluation_action = lambda observation: self.agent.taxi_evaluation_action(observation)
+
+        self.run(training_action, update, evaluation_action)
+
+    def run_cartpole_random(self):
+        training_action = lambda _observation: self.agent.action(self.env)
+        update = lambda _observation, _action, _reward: None
+        evaluation_action = training_action
+
+        self.run(training_action, update, evaluation_action)
+
+    def run_cartpole_qlearner(self):
+        self.agent.initialize_cartpole_q_table(self.env)
+
+        training_action = lambda observation: self.agent.cartpole_training_action(self.env, observation)
+        update = lambda observation, action, reward: self.agent.cartpole_update(observation, action, reward)
+        evaluation_action = lambda observation: self.agent.cartpole_evaluation_action(observation)
+
+        self.run(training_action, update, evaluation_action)
+
+    def run(self, training_action, update, evaluation_action):
+        self.train(training_action, update)
+        #self.evaluate(evaluation_action)
+        self.report()
+
+    def train(self, training_action, update):
         for _ in range(self.training_episodes):
             observation = self.env.reset()
             done = False
             step = 0
+            episode_reward = 0
             while not done:
                 if (self.debug):
                     self.env.render()
                     print(f"observation: {observation}")
 
-                action = self.agent.training_action(self.env, observation)
+                action = training_action(observation)
                 observation, reward, done, info = self.env.step(action)
-                self.agent.update(observation, action, reward)
+                episode_reward += reward
+                update(observation, action, reward)
                 step += 1
 
                 if done: # OpenAI gym enforces a maximum of 200 steps if not solved
                     if (self.debug):
                         print(f"Episode finished after {step} timesteps")
                     break
+            self.rewards.append(episode_reward)
 
-    def evaluate(self):
+    def evaluate(self, evaluation_action):
         rewards = []
         for _ in range(self.evaluation_episodes):
             observation = self.env.reset()
             done = False
-            step = 0
             episode_reward = 0
             while not done:
-                action = self.agent.evaluation_action(self.env, observation)
+                action = evaluation_action(observation)
                 observation, reward, done, info = self.env.step(action)
                 episode_reward += reward
-                step += 1
 
                 if done: # OpenAI gym enforces a maximum of 200 steps if not solved
                     break
             rewards.append(episode_reward)
         average_reward = sum(rewards) / self.evaluation_episodes
         print(f"average reward level over {self.evaluation_episodes} episodes: {average_reward}")
+
+    def report(self):
+        print(self.rewards)
+
+    """
+    def demonstrate(self):
+        for _ in range(10):
+            observation = self.env.reset()
+            done = False
+            while not done:
+                self.env.render()
+                action = self.agent.evaluation_action(self.env, observation)
+                observation, reward, done, info = self.env.step(action)
+
+                if done: # OpenAI gym enforces a maximum of 200 steps if not solved
+                    break
+    """
+
