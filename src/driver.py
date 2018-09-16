@@ -1,17 +1,16 @@
-import random
-import sys
-from gym.spaces import prng
+import matplotlib
+# using an alternative backend to macos gui driver, because there is an issue with
+# matplotlib, virtualenv and macos: https://github.com/pypa/virtualenv/issues/54
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
-# TODO: think about display, reporting etc
-# think about when to stop convergence, make the param just a max
 class Driver:
     def __init__(self, params):
-        self.debug = params['debug']
         self.training_episodes = params['training_episodes']
-        self.evaluation_episodes = params['evaluation_episodes']
         self.env = params['env']
         self.agent = params['agent']
-        self.rewards = []
+        self.training_rewards = []
+        self.evaluation_rewards = []
 
     def run_taxi_random(self):
         training_action = lambda _observation: self.agent.action(self.env)
@@ -46,64 +45,67 @@ class Driver:
         self.run(training_action, update, evaluation_action)
 
     def run(self, training_action, update, evaluation_action):
-        self.train(training_action, update)
-        #self.evaluate(evaluation_action)
-        self.report()
+        for i in range(self.training_episodes):
+            if ((i + 1) % 1000 == 0):
+                print("progress: {}%".format(100 * (i + 1) // self.training_episodes))
+            self.train(training_action, update)
+            self.evaluate(evaluation_action)
+            # TODO: remove
+            #if ((i + 1) % 5000 == 0):
+                #print("current q_table")
+                #[print(line) for line in self.agent.q_table]
+
+        self.plot()
+        #self.demonstrate(evaluation_action)
 
     def train(self, training_action, update):
-        for _ in range(self.training_episodes):
+        observation = self.env.reset()
+        done = False
+        episode_reward = 0
+        while not done:
+            action = training_action(observation)
+            observation, reward, done, info = self.env.step(action)
+            episode_reward += reward
+            update(observation, action, reward)
+        self.training_rewards.append(episode_reward)
+
+    def evaluate(self, evaluation_action):
+        observation = self.env.reset()
+        done = False
+        episode_reward = 0
+        while not done:
+            action = evaluation_action(observation)
+            observation, reward, done, info = self.env.step(action)
+            episode_reward += reward
+        self.evaluation_rewards.append(episode_reward)
+
+    def plot(self):
+        plt.subplot('211')
+        plt.plot(self.training_rewards, linewidth=1)
+        plt.title('Training reward over time')
+        plt.ylabel('reward')
+        plt.xlabel('iterations')
+
+        plt.subplot('212')
+        plt.plot(self.evaluation_rewards, linewidth=1)
+        plt.title('Evaluation reward over time')
+        plt.ylabel('reward')
+        plt.xlabel('iterations')
+
+        plt.show()
+
+    def demonstrate(self, evaluation_action):
+        user_input = 'Y'
+        while (user_input == 'Y'):
             observation = self.env.reset()
             done = False
             step = 0
-            episode_reward = 0
             while not done:
-                if (self.debug):
-                    self.env.render()
-                    print(f"observation: {observation}")
-
-                action = training_action(observation)
-                observation, reward, done, info = self.env.step(action)
-                episode_reward += reward
-                update(observation, action, reward)
+                print(f"Step: {str(step)}")
                 step += 1
-
-                if done: # OpenAI gym enforces a maximum of 200 steps if not solved
-                    if (self.debug):
-                        print(f"Episode finished after {step} timesteps")
-                    break
-            self.rewards.append(episode_reward)
-
-    def evaluate(self, evaluation_action):
-        rewards = []
-        for _ in range(self.evaluation_episodes):
-            observation = self.env.reset()
-            done = False
-            episode_reward = 0
-            while not done:
+                self.env.render()
                 action = evaluation_action(observation)
                 observation, reward, done, info = self.env.step(action)
-                episode_reward += reward
 
-                if done: # OpenAI gym enforces a maximum of 200 steps if not solved
-                    break
-            rewards.append(episode_reward)
-        average_reward = sum(rewards) / self.evaluation_episodes
-        print(f"average reward level over {self.evaluation_episodes} episodes: {average_reward}")
-
-    def report(self):
-        print(self.rewards)
-
-    """
-    def demonstrate(self):
-        for _ in range(10):
-            observation = self.env.reset()
-            done = False
-            while not done:
-                self.env.render()
-                action = self.agent.evaluation_action(self.env, observation)
-                observation, reward, done, info = self.env.step(action)
-
-                if done: # OpenAI gym enforces a maximum of 200 steps if not solved
-                    break
-    """
+            user_input = input('See demo? Y/N')
 

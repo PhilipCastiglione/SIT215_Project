@@ -8,8 +8,6 @@
 
 - cartpole/qlearner tutorial
 - policy gradient agent (?)
-- there's a sort of bug; the q_learner state hashing doesn't make sense on an array of reals...?
-  - could bucketize
 - OTHER environment
 - temporal difference agent
 - gitignore

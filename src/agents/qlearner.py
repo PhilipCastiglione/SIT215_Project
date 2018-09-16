@@ -1,8 +1,15 @@
 import random
+import math
 import numpy as np
 
+CARTPOLE_POSITION_BUCKETS = 4
+CARTPOLE_POSITION_RANGE = (-2.4, 2.4)
+CARTPOLE_VELOCITY_BUCKETS = 4
+CARTPOLE_VELOCITY_RANGE = (-2.4, 2.4)
 CARTPOLE_THETA_BUCKETS = 6
+CARTPOLE_THETA_RANGE = (-0.18, 0.18)
 CARTPOLE_THETA_VELOCITY_BUCKETS = 4
+CARTPOLE_THETA_VELOCITY_RANGE = (-2.0, 2.0)
 
 class Qlearner():
     def __init__(self, parameters):
@@ -10,6 +17,8 @@ class Qlearner():
         self.gamma = parameters['gamma']
         self.epsilon = parameters['epsilon']
         super().__init__()
+
+    # TAXI
 
     def initialize_taxi_q_table(self, env):
         self.q_table = np.zeros([env.observation_space.n, env.action_space.n])
@@ -30,8 +39,13 @@ class Qlearner():
         new_value = (1 - self.alpha) * old_value + self.alpha * (reward + self.gamma * next_max)
         self.q_table[self.previous_observation, action] = new_value
 
+    # CARTPOLE
+
     def initialize_cartpole_q_table(self, env):
-        self.q_table = np.zeros([CARTPOLE_THETA_BUCKETS * CARTPOLE_THETA_VELOCITY_BUCKETS, env.action_space.n])
+        self.q_table = np.zeros([
+            CARTPOLE_POSITION_BUCKETS * CARTPOLE_VELOCITY_BUCKETS * CARTPOLE_THETA_BUCKETS * CARTPOLE_THETA_VELOCITY_BUCKETS
+            , env.action_space.n
+        ])
 
     def cartpole_training_action(self, env, observation):
         self.previous_observation = observation
@@ -50,11 +64,36 @@ class Qlearner():
         self.q_table[self._cartpole_observation(self.previous_observation), action] = new_value
 
     def _cartpole_observation(self, observation):
-        _, _, theta, theta_velocity = observation
-        bucketed_theta = self._bucket(theta, CARTPOLE_THETA_BUCKETS, (-0.18, 0.18))
-        bucketed_theta_velocity = self._bucket(theta_velocity, CARTPOLE_THETA_VELOCITY_BUCKETS, (-2.0, 2.0))
-        index = (bucketed_theta - 1) * CARTPOLE_THETA_VELOCITY_BUCKETS + (bucketed_theta_velocity - 1)
+        position, velocity, theta, theta_velocity = observation
+
+        bucketed_position = self._bucket(position, CARTPOLE_POSITION_BUCKETS, CARTPOLE_POSITION_RANGE)
+        bucketed_velocity = self._bucket(velocity, CARTPOLE_VELOCITY_BUCKETS, CARTPOLE_VELOCITY_RANGE)
+        bucketed_theta = self._bucket(theta, CARTPOLE_THETA_BUCKETS, CARTPOLE_THETA_RANGE)
+        bucketed_theta_velocity = self._bucket(theta_velocity, CARTPOLE_THETA_VELOCITY_BUCKETS, CARTPOLE_THETA_VELOCITY_RANGE)
+
+        position_index = (bucketed_position - 1) * CARTPOLE_VELOCITY_BUCKETS * CARTPOLE_THETA_BUCKETS * CARTPOLE_THETA_VELOCITY_BUCKETS
+        velocity_index = (bucketed_velocity - 1) * CARTPOLE_THETA_BUCKETS * CARTPOLE_THETA_VELOCITY_BUCKETS
+        theta_index = (bucketed_theta - 1) * CARTPOLE_THETA_VELOCITY_BUCKETS
+        theta_velocity_index = (bucketed_theta_velocity - 1)
+
+        index = position_index + velocity_index + theta_index + theta_velocity_index
         return index
+        # TODO delete
+        print('observation')
+        print(observation)
+        print('buckets')
+        print(bucketed_position)
+        print(bucketed_velocity)
+        print(bucketed_theta)
+        print(bucketed_theta_velocity)
+        print('indices')
+        print(position_index)
+        print(velocity_index)
+        print(theta_index)
+        print(theta_velocity_index)
+        print('index')
+        print(index)
+        raise 'lol'
 
     def _bucket(self, observation, num_buckets, obs_range):
         # calculate bucket number
@@ -62,59 +101,10 @@ class Qlearner():
         r_max = obs_range[1]
         r_range = r_max - r_min
         bucket_size = r_range / num_buckets
-        bucket = int(observation / bucket_size + num_buckets / 2)
+        bucket = math.ceil((observation + r_range / 2) / bucket_size)
 
         # bound
         bucket = min(bucket, num_buckets)
         bucket = max(bucket, 1)
         return bucket
 
-
-"""
-    # the training action is to either explore (try new paths), or exploit (use our current knowledge)
-    def training_action(self, env, observation):
-        self.previous_observation = observation
-        if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
-        else:
-            state = self.bucket(observation) if self.bucketized_states else observation
-            return np.argmax(self.q_table[state])
-
-    # the evaluation action is the best move we can make using our current knowledge
-    def evaluation_action(self, env, observation):
-        state = self.bucket(observation) if self.bucketized_states else observation
-        return np.argmax(self.q_table[state])
-
-    # update our q_table record for the previous state
-    def update(self, observation, action, reward):
-        previous_state = self.bucket(self.previous_observation) if self.bucketized_states else self.previous_observation
-        state = self.bucket(observation) if self.bucketized_states else observation
-
-        old_value = self.q_table[previous_state, action]
-        next_max = np.max(self.q_table[state])
-        new_value = (1 - self.alpha) * old_value + self.alpha * (reward + self.gamma * next_max)
-        self.q_table[previous_state, action] = new_value
-
-    # calculate a number of buckets for the number of actions, so we can convert an array
-    # of values into an integer number of buckets (with an arbitrary degree of accuracy)
-    def num_buckets(self):
-        return self.buckets_per_state ** len(self.states_range[0])
-
-    # determine the bucket of an observation
-    def bucket(self, observation):
-        index = 0
-        for i, o in enumerate(observation):
-            # calculate bucket number
-            r_min = self.states_range[0][i]
-            r_max = self.states_range[1][i]
-            r_range = r_max - r_min
-            bucket_size = r_range / self.buckets_per_state
-            bucket = int(o / bucket_size + self.buckets_per_state / 2)
-
-            # bound
-            bucket = min(bucket, self.buckets_per_state)
-            bucket = max(bucket, 1)
-
-            index += (bucket - 1) * (self.buckets_per_state ** i)
-        return index
-        """

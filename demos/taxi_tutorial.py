@@ -134,8 +134,10 @@ print("Training finished.\n")
 total_epochs, total_penalties = 0, 0
 episodes = 100
 
+all_rewards = []
 for _ in range(episodes):
     state = env.reset()
+    episode_reward = 0
     epochs, penalties, reward = 0, 0, 0
 
     done = False
@@ -143,15 +145,28 @@ for _ in range(episodes):
     while not done:
         action = np.argmax(q_table[state])
         state, reward, done, info = env.step(action)
+        episode_reward += reward
 
         if reward == -10:
             penalties += 1
 
         epochs += 1
-
+    all_rewards.append(episode_reward)
+    
     total_penalties += penalties
     total_epochs += epochs
 
 print(f"Results after {episodes} episodes:")
 print(f"Average timesteps per episode: {total_epochs / episodes}")
 print(f"Average penalties per episode: {total_penalties / episodes}")
+
+import matplotlib
+# using an alternative backend to macos gui driver, because there is an issue with
+# matplotlib, virtualenv and macos: https://github.com/pypa/virtualenv/issues/54
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+
+plt.plot(all_rewards, linewidth=1)
+plt.ylabel('reward')
+plt.xlabel('iterations')
+plt.show()
