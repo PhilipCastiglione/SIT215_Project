@@ -48,7 +48,7 @@ Follow the instructions below to set up this project locally:
 **Clone or download** button on
 [GitHub](https://github.com/philipcastiglione/SIT215_Project)
 1. Install Python 3 using `brew install python3`
-1. Install `pipenv` using `brew install pipenv`
+1. Install pipenv using `brew install pipenv`
 1. Install all remaining dependencies using `pipenv install`
 
 A list of project dependencies is contained in the `Pipfile`.
@@ -83,7 +83,7 @@ Alternatively, if you are using a packaged distribution such as Anaconda, use
 your package management tool to to install the relevant version of required
 dependencies, referring to the Pipfile and Pipfile.lock.
 
-### macOS
+### Verification
 
 To verify installation, a tool has been provided.
 
