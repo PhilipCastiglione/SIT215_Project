@@ -4,6 +4,21 @@ from src.agents.random import Random
 from src.agents.qlearner import Qlearner
 from src.agents.tdlearner import TDlearner
 
+'''
+USAGE INSTRUCTIONS
+
+At the bottom of this file, these functions defining a combination of an agent
+and an environment are invoked. All but one are commented out. Choose which
+agent and environment you want to run, and uncomment that line. For example,
+to see the Qlearner agent operating the Taxi environment, uncomment:
+
+    #taxi_qlearner()
+
+It is recommended you leave all other function invocations commented out when
+you run this file, as it will be faster and you will only see the output you
+are interested in.
+'''
+
 def taxi_random():
     agent = Random()
     driver = Driver({
@@ -55,7 +70,7 @@ def cartpole_tdlearner():
         'epsilon': 0.1,
     })
     driver = Driver({
-        'training_episodes': 100000,
+        'training_episodes': 10000,
         'env': gym.make('CartPole-v1'),
         'agent': agent,
     })
@@ -101,8 +116,8 @@ if __name__ == '__main__':
     #taxi_qlearner()
     #cartpole_random()
     #cartpole_qlearner()
-    #cartpole_tdlearner()
+    cartpole_tdlearner()
     #frozen_lake_random()
     #frozen_lake_qlearner()
-    frozen_lake_tdlearner()
+    #frozen_lake_tdlearner()
 

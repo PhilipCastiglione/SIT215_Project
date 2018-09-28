@@ -69,7 +69,6 @@ class Driver:
 
         self.run(training_action, update, evaluation_action)
 
-
     def run_frozen_lake_tdlearner(self):
         self.agent.initialize_frozen_lake_q_policy(self.env)
 
