@@ -44,21 +44,56 @@ class Driver:
 
         self.run(training_action, update, evaluation_action)
 
+    def run_cartpole_tdlearner(self):
+        self.agent.initialize_cartpole_q_policy(self.env)
+
+        training_action = lambda observation: self.agent.cartpole_training_action(self.env, observation)
+        update = lambda observation, action, reward: self.agent.cartpole_update(observation, action, reward)
+        evaluation_action = lambda observation: self.agent.cartpole_evaluation_action(observation)
+
+        self.run(training_action, update, evaluation_action)
+
+    def run_frozen_lake_random(self):
+        training_action = lambda _observation: self.agent.action(self.env)
+        update = lambda _observation, _action, _reward: None
+        evaluation_action = training_action
+
+        self.run(training_action, update, evaluation_action)
+
+    def run_frozen_lake_qlearner(self):
+        self.agent.initialize_frozen_lake_q_table(self.env)
+
+        training_action = lambda observation: self.agent.frozen_lake_training_action(self.env, observation)
+        update = lambda observation, action, reward: self.agent.frozen_lake_update(observation, action, reward)
+        evaluation_action = lambda observation: self.agent.frozen_lake_evaluation_action(observation)
+
+        self.run(training_action, update, evaluation_action)
+
+
+    def run_frozen_lake_tdlearner(self):
+        self.agent.initialize_frozen_lake_q_policy(self.env)
+
+        training_action = lambda observation: self.agent.frozen_lake_training_action(self.env, observation)
+        update = lambda observation, action, reward: self.agent.frozen_lake_update(observation, action, reward)
+        evaluation_action = lambda observation: self.agent.frozen_lake_evaluation_action(observation)
+
+        self.run(training_action, update, evaluation_action)
+
     def run(self, training_action, update, evaluation_action):
         for i in range(self.training_episodes):
             if ((i + 1) % 1000 == 0):
                 print("progress: {}%".format(100 * (i + 1) // self.training_episodes))
-            self.train(training_action, update)
-            self.evaluate(evaluation_action)
-            # TODO: remove
-            #if ((i + 1) % 5000 == 0):
-                #print("current q_table")
-                #[print(line) for line in self.agent.q_table]
+            self.train_once(training_action, update)
+            self.evaluate_once(evaluation_action)
 
         self.plot()
-        #self.demonstrate(evaluation_action)
+        
+        try:
+            self.demonstrate(evaluation_action)
+        except NotImplementedError:
+            print("Cannot demonstrate: render method on env not implemented.")
 
-    def train(self, training_action, update):
+    def train_once(self, training_action, update):
         observation = self.env.reset()
         done = False
         episode_reward = 0
@@ -69,7 +104,7 @@ class Driver:
             update(observation, action, reward)
         self.training_rewards.append(episode_reward)
 
-    def evaluate(self, evaluation_action):
+    def evaluate_once(self, evaluation_action):
         observation = self.env.reset()
         done = False
         episode_reward = 0
@@ -99,13 +134,20 @@ class Driver:
         while (user_input == 'Y'):
             observation = self.env.reset()
             done = False
+            episode_reward = 0
+            reward = 0
             step = 0
             while not done:
-                print(f"Step: {str(step)}")
+                print(f"Step: {step} | Cumulative Reward: {episode_reward}")
                 step += 1
+                print("RENDERING...")
                 self.env.render()
                 action = evaluation_action(observation)
+                print('observation: ', observation)
+                print('action: ', action)
+                print('reward: ', reward)
                 observation, reward, done, info = self.env.step(action)
+                episode_reward += reward
 
-            user_input = input('See demo? Y/N')
+            user_input = input('Enter Y for another demo: ')
 
