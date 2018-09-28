@@ -2,6 +2,7 @@ import random
 import math
 import numpy as np
 
+# cartpole bucket hyperparameters
 CARTPOLE_POSITION_BUCKETS = 2
 CARTPOLE_POSITION_RANGE = (-2.0, 2.0)
 CARTPOLE_VELOCITY_BUCKETS = 6
@@ -26,14 +27,16 @@ class Qlearner():
     def taxi_training_action(self, env, observation):
         self.previous_observation = observation
         if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
+            return env.action_space.sample() # explore
         else:
-            return np.argmax(self.q_table[observation])
+            return np.argmax(self.q_table[observation]) # exploit
 
     def taxi_evaluation_action(self, observation):
         return np.argmax(self.q_table[observation])
 
     def taxi_update(self, observation, action, reward):
+        # updates the previous observation qtable entry with the reward gained,
+        # uses the maximum/best future option always
         old_value = self.q_table[self.previous_observation, action]
         next_max = np.max(self.q_table[observation])
         new_value = (1 - self.alpha) * old_value + self.alpha * (reward + self.gamma * next_max)
@@ -55,20 +58,24 @@ class Qlearner():
     def cartpole_training_action(self, env, observation):
         self.previous_observation = observation
         if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
+            return env.action_space.sample() # explore
         else:
-            return np.argmax(self.q_table[self._cartpole_obs_index(observation)])
+            return np.argmax(self.q_table[self._cartpole_obs_index(observation)]) # exploit
 
     def cartpole_evaluation_action(self, observation):
         return np.argmax(self.q_table[self._cartpole_obs_index(observation)])
 
     def cartpole_update(self, observation, action, reward):
+        # updates the previous observation qtable entry with the reward gained,
+        # uses the maximum/best future option always
         old_value = self.q_table[self._cartpole_obs_index(self.previous_observation), action]
         next_max = np.max(self.q_table[self._cartpole_obs_index(observation)])
         new_value = (1 - self.alpha) * old_value + self.alpha * (reward + self.gamma * next_max)
         self.q_table[self._cartpole_obs_index(self.previous_observation), action] = new_value
 
     def _cartpole_obs_index(self, observation):
+        # because cartpole observations are continuous, we have to bucket them and
+        # calculate an index for the qtable
         position, velocity, theta, theta_velocity = observation
 
         bucketed_position = self._bucket(position, CARTPOLE_POSITION_BUCKETS, CARTPOLE_POSITION_RANGE)
@@ -105,14 +112,16 @@ class Qlearner():
     def frozen_lake_training_action(self, env, observation):
         self.previous_observation = observation
         if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
+            return env.action_space.sample() # explore
         else:
-            return np.argmax(self.q_table[observation])
+            return np.argmax(self.q_table[observation]) # exploit
 
     def frozen_lake_evaluation_action(self, observation):
         return np.argmax(self.q_table[observation])
 
     def frozen_lake_update(self, observation, action, reward):
+        # updates the previous observation qtable entry with the reward gained,
+        # uses the maximum/best future option always
         old_value = self.q_table[self.previous_observation, action]
         next_max = np.max(self.q_table[observation])
         new_value = (1 - self.alpha) * old_value + self.alpha * (reward + self.gamma * next_max)

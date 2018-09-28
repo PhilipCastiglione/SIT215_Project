@@ -22,7 +22,7 @@ are interested in.
 def taxi_random():
     agent = Random()
     driver = Driver({
-        'training_episodes': 1000,
+        'epochs': 1000,
         'env': gym.make('Taxi-v2'),
         'agent': agent,
     })
@@ -35,7 +35,7 @@ def taxi_qlearner():
         'epsilon': 0.1,
     })
     driver = Driver({
-        'training_episodes': 10000,
+        'epochs': 10000,
         'env': gym.make('Taxi-v2'),
         'agent': agent,
     })
@@ -44,7 +44,7 @@ def taxi_qlearner():
 def cartpole_random():
     agent = Random()
     driver = Driver({
-        'training_episodes': 1000,
+        'epochs': 1000,
         'env': gym.make('CartPole-v1'),
         'agent': agent,
     })
@@ -57,7 +57,7 @@ def cartpole_qlearner():
         'epsilon': 0.1,
     })
     driver = Driver({
-        'training_episodes': 100000,
+        'epochs': 100000,
         'env': gym.make('CartPole-v1'),
         'agent': agent,
     })
@@ -70,7 +70,7 @@ def cartpole_tdlearner():
         'epsilon': 0.1,
     })
     driver = Driver({
-        'training_episodes': 10000,
+        'epochs': 10000,
         'env': gym.make('CartPole-v1'),
         'agent': agent,
     })
@@ -79,7 +79,7 @@ def cartpole_tdlearner():
 def frozen_lake_random():
     agent = Random()
     driver = Driver({
-        'training_episodes': 1000,
+        'epochs': 1000,
         'env': gym.make('FrozenLake-v0'),
         'agent': agent,
     })
@@ -92,7 +92,7 @@ def frozen_lake_qlearner():
         'epsilon': 0.3,
     })
     driver = Driver({
-        'training_episodes': 10000,
+        'epochs': 10000,
         'env': gym.make('FrozenLake-v0'),
         'agent': agent,
     })
@@ -105,18 +105,18 @@ def frozen_lake_tdlearner():
         'epsilon': 0.3,
     })
     driver = Driver({
-        'training_episodes': 10000,
+        'epochs': 10000,
         'env': gym.make('FrozenLake-v0'),
         'agent': agent,
     })
     driver.run_frozen_lake_tdlearner()
 
 if __name__ == '__main__':
-    #taxi_random()
+    taxi_random()
     #taxi_qlearner()
     #cartpole_random()
     #cartpole_qlearner()
-    cartpole_tdlearner()
+    #cartpole_tdlearner()
     #frozen_lake_random()
     #frozen_lake_qlearner()
     #frozen_lake_tdlearner()

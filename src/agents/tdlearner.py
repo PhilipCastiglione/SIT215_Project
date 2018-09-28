@@ -2,6 +2,7 @@ import random
 import math
 import numpy as np
 
+# cartpole bucket hyperparameters
 CARTPOLE_POSITION_BUCKETS = 2
 CARTPOLE_POSITION_RANGE = (-2.0, 2.0)
 CARTPOLE_VELOCITY_BUCKETS = 6
@@ -28,8 +29,10 @@ class TDlearner():
     def taxi_training_action(self, env, observation):
         self.previous_observation = observation
         if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
+            return env.action_space.sample() # explore
         else:
+            # exploit using a probability weighted selection fom future states
+            # with the existing policy
             next_actions = self.q_policy[observation]
             next_actions_sum = sum(next_actions)
             weighted_actions = [action / next_actions_sum for action in next_actions]
@@ -42,6 +45,8 @@ class TDlearner():
         return np.random.choice(np.arange(self.obs_range), p=weighted_actions)
 
     def taxi_update(self, observation, action, reward):
+        # updates the policy with the reward gained, using a probability weighted
+        # selection fom future states with the existing policy
         old_value = self.q_policy[self.previous_observation, action]
         next_actions = self.q_policy[observation]
         next_actions_sum = sum(next_actions)
@@ -67,8 +72,10 @@ class TDlearner():
     def cartpole_training_action(self, env, observation):
         self.previous_observation = observation
         if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
+            return env.action_space.sample() # explore
         else:
+            # exploit using a probability weighted selection fom future states
+            # with the existing policy
             next_actions = self.q_policy[self._cartpole_obs_index(observation)]
             next_actions_sum = sum(next_actions)
             weighted_actions = [action / next_actions_sum for action in next_actions]
@@ -81,6 +88,8 @@ class TDlearner():
         return np.random.choice(np.arange(self.obs_range), p=weighted_actions)
 
     def cartpole_update(self, observation, action, reward):
+        # updates the policy with the reward gained, using a probability weighted
+        # selection fom future states with the existing policy
         old_value = self.q_policy[self._cartpole_obs_index(self.previous_observation), action]
         next_actions = self.q_policy[self._cartpole_obs_index(observation)]
         next_actions_sum = sum(next_actions)
@@ -90,6 +99,8 @@ class TDlearner():
         self.q_policy[self._cartpole_obs_index(self.previous_observation), action] = new_value
 
     def _cartpole_obs_index(self, observation):
+        # because cartpole observations are continuous, we have to bucket them and
+        # calculate an index for the qtable
         position, velocity, theta, theta_velocity = observation
 
         bucketed_position = self._bucket(position, CARTPOLE_POSITION_BUCKETS, CARTPOLE_POSITION_RANGE)
@@ -127,8 +138,10 @@ class TDlearner():
     def frozen_lake_training_action(self, env, observation):
         self.previous_observation = observation
         if random.uniform(0, 1) < self.epsilon:
-            return env.action_space.sample()
+            return env.action_space.sample() # explore
         else:
+            # exploit using a probability weighted selection fom future states
+            # with the existing policy
             next_actions = self.q_policy[observation]
             next_actions_sum = sum(next_actions)
             weighted_actions = [action / next_actions_sum for action in next_actions]
@@ -141,6 +154,8 @@ class TDlearner():
         return np.random.choice(np.arange(self.obs_range), p=weighted_actions)
 
     def frozen_lake_update(self, observation, action, reward):
+        # updates the policy with the reward gained, using a probability weighted
+        # selection fom future states with the existing policy
         old_value = self.q_policy[self.previous_observation, action]
         next_actions = self.q_policy[observation]
         next_actions_sum = sum(next_actions)
