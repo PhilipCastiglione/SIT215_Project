@@ -1,6 +1,6 @@
-# SIT215 Artificial And Computational Intelligence: Reinforcement Learning Project
+# SIT215 Artificial And Computational Intelligence: Reinforcement Learning
 
-TODO
+This repository contains the code associated with the Deakin SIT215 Investigating Reinforcement Learning Project.
 
 ## Agents and Environments
 
@@ -130,15 +130,3 @@ in the command prompt to see another demo. Enter any other character to exit.
 
 An interactive shell is also available (if using pipenv) with dependencies
 preloaded: `pipenv shell`.
-
-# TODO
-
-- readme
-- comments
-- report part 1
-- report part 2
-- report part 3
-- report part 4
-- think about display/reporting etc
-- think about results/data comparisons etc
-
