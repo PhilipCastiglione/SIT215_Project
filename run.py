@@ -52,12 +52,12 @@ def cartpole_random():
 
 def cartpole_qlearner():
     agent = Qlearner({
-        'alpha': 0.1,
-        'gamma': 0.2,
+        'alpha': 0.2,
+        'gamma': 0.5,
         'epsilon': 0.1,
     })
     driver = Driver({
-        'epochs': 100000,
+        'epochs': 50000,
         'env': gym.make('CartPole-v1'),
         'agent': agent,
     })
@@ -65,12 +65,12 @@ def cartpole_qlearner():
 
 def cartpole_tdlearner():
     agent = TDlearner({
-        'alpha': 0.1,
-        'gamma': 0.2,
+        'alpha': 0.2,
+        'gamma': 0.5,
         'epsilon': 0.1,
     })
     driver = Driver({
-        'epochs': 10000,
+        'epochs': 50000,
         'env': gym.make('CartPole-v1'),
         'agent': agent,
     })
